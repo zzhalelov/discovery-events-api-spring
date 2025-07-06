@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/discovery-events-api
+    username: postgres
+    password: postgres
+  jpa:
+    generate-ddl: true
