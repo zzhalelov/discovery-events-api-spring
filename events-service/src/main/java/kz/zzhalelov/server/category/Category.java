@@ -1,4 +1,4 @@
-package kz.zzhalelov.server.user;
+package kz.zzhalelov.server.category;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,13 +7,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "categories")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(length = 250)
+    @Column(length = 50)
     private String name;
-    @Column(length = 254)
-    private String email;
 }
