@@ -5,3 +5,5 @@ spring:
     password: postgres
   jpa:
     generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
