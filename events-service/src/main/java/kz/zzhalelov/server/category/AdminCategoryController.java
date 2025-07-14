@@ -9,17 +9,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping()
-public class CategoryController {
+@RequestMapping("/admin/categories")
+public class AdminCategoryController {
     private final CategoryMapper categoryMapper;
     private final CategoryService categoryService;
 
     //POST
-    @PostMapping("/admin/categories")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryResponseDto create(@Valid @RequestBody CategoryCreateDto categoryCreateDto) {
         Category category = categoryMapper.fromCreate(categoryCreateDto);
@@ -27,7 +26,7 @@ public class CategoryController {
     }
 
     //PATCH /admin/categories/{catId}
-    @PatchMapping("/admin/categories/{catId}")
+    @PatchMapping("/{catId}")
     @ResponseStatus(HttpStatus.OK)
     public CategoryResponseDto update(@PathVariable long catId,
                                       @Valid @RequestBody CategoryUpdateDto categoryUpdateDto) {
@@ -36,22 +35,9 @@ public class CategoryController {
     }
 
     //DELETE /admin/categories/{catId}
-    @DeleteMapping("/admin/categories/{catId}")
+    @DeleteMapping("/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByid(@PathVariable long catId) {
+    public void deleteById(@PathVariable long catId) {
         categoryService.delete(catId);
-    }
-
-    //GET /categories
-    @GetMapping("/categories")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Category> findAll() {
-        return categoryService.findAll();
-    }
-
-    //GET /categories/{catId}
-    @GetMapping("/categories/{catId}")
-    public Category findById(@PathVariable long catId) {
-        return categoryService.findById(catId);
     }
 }
