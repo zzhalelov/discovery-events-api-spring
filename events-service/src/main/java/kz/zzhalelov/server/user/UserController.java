@@ -26,8 +26,8 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponseDto> findAll(@RequestParam List<Integer> ids) {
-        return userService.findAll().stream()
+    public List<UserResponseDto> findAll(@RequestParam List<Long> ids) {
+        return userService.findAll(ids).stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
     }
