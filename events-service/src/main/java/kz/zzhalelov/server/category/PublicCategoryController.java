@@ -13,13 +13,13 @@ public class PublicCategoryController {
     private final CategoryService categoryService;
 
     //GET /categories/{catId}
-    @GetMapping("dx/{catId}")
+    @GetMapping("/{catId}")
     public Category findById(@PathVariable long catId) {
         return categoryService.findById(catId);
     }
 
     //GET /categories
-    @GetMapping("/categories")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<Category> findAll() {
         return categoryService.findAll();
