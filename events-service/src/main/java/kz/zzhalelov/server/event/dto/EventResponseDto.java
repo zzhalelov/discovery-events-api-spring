@@ -1,11 +1,10 @@
 package kz.zzhalelov.server.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import kz.zzhalelov.server.category.Category;
+import kz.zzhalelov.server.event.EventState;
+import kz.zzhalelov.server.user.dto.UserShortDto;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -17,14 +16,16 @@ public class EventResponseDto {
     @NotBlank(message = "")
     @Size(min = 20, max = 2000)
     String annotation;
-    Long categoryId;
+    UserShortDto initiator;
+    Category category;
     @NotBlank(message = "Описание не заполнено")
     @Size(min = 20, max = 7000)
     String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     String eventDate;
-    Double latitude;
-    Double longitude;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    String createdOn;
+    LocationDto location;
     Boolean paid;
     @Min(0)
     @Max(10)
@@ -33,4 +34,6 @@ public class EventResponseDto {
     @NotBlank(message = "")
     @Size(min = 3, max = 120)
     String title;
+    @NotNull
+    EventState state;
 }

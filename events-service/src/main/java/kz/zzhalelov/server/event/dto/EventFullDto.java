@@ -3,7 +3,6 @@ package kz.zzhalelov.server.event.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import kz.zzhalelov.server.category.Category;
 import kz.zzhalelov.server.category.dto.CategoryDto;
 import kz.zzhalelov.server.event.EventState;
 import kz.zzhalelov.server.user.dto.UserShortDto;

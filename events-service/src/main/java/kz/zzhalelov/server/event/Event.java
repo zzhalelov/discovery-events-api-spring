@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @Column(length = 2000)
     private String annotation;
     @ManyToOne
@@ -35,10 +35,9 @@ public class Event {
     private Boolean paid;
     @Column(name = "request_moderation")
     private Boolean requestModeration;
-    //private Location location;
     private Double lon;
     private Double lat;
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private EventState state;
     @ManyToOne
     private Category category;

@@ -20,7 +20,7 @@ public class EventController {
     public EventResponseDto create(@Valid @RequestBody EventCreateDto eventCreateDto,
                                    @PathVariable long userId) {
         Event event = eventMapper.fromCreate(eventCreateDto);
-        Event createdEvent = eventService.create(event, userId, eventCreateDto.getCategoryId());
+        Event createdEvent = eventService.create(event, userId, eventCreateDto.getCategory());
         return eventMapper.toResponse(createdEvent);
     }
 }
