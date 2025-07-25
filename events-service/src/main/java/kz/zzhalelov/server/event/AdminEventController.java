@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/events")
+@RequestMapping("/admin/events")
 public class AdminEventController {
     private final EventService eventService;
     private final EventMapper eventMapper;

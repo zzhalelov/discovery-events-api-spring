@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class EventMapper {
@@ -54,5 +56,23 @@ public class EventMapper {
         eventResponseDto.setInitiator(new UserShortDto(event.getInitiator().getId(), event.getInitiator().getName()));
         eventResponseDto.setState(event.getState());
         return eventResponseDto;
+    }
+
+    public List<EventResponseDto> toResponse(List<Event> events) {
+        return events.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public Event fromUpdate(EventUpdateDto eventUpdateDto) {
+        Event event = new Event();
+        event.setAnnotation(eventUpdateDto.getAnnotation());
+        event.setDescription(eventUpdateDto.getDescription());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime eventDate = LocalDateTime.parse(eventUpdateDto.getEventDate(), formatter);
+        event.setEventDate(eventDate);
+        LocalDateTime updatedDate = LocalDateTime.parse(eventUpdateDto.getEventDate(), formatter);
+        event.setEventDate(updatedDate);
+        return event;
     }
 }
