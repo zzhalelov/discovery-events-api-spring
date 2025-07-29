@@ -3,8 +3,8 @@ package kz.zzhalelov.server.event.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import kz.zzhalelov.server.category.dto.CategoryDto;
-import kz.zzhalelov.server.event.EventState;
+import kz.zzhalelov.server.category.dto.CategoryResponseDto;
+import kz.zzhalelov.server.event.eventEnum.EventState;
 import kz.zzhalelov.server.user.dto.UserShortDto;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class EventFullDto {
     @Size(min = 20, max = 2000)
     String annotation;
     @NotNull
-    CategoryDto category;
+    CategoryResponseDto category;
     Integer confirmedRequests;
     String createdOn;
     @NotBlank

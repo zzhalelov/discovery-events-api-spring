@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EventCreateDto {
@@ -19,9 +21,7 @@ public class EventCreateDto {
     String description;
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    String eventDate;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    String createdOn;
+    LocalDateTime eventDate;
     LocationDto location;
     @NotNull
     Boolean paid;

@@ -1,5 +1,6 @@
 package kz.zzhalelov.server.event;
 
+import kz.zzhalelov.server.event.dto.ParamEventDto;
 import kz.zzhalelov.server.user.User;
 
 import java.util.List;
@@ -13,5 +14,6 @@ public interface EventService {
 
     Event update(Event event, long userId, long eventId);
 
-    Event cancelEvent(Event event, long userId, long eventId);
+    List<Event> searchEvents(ParamEventDto paramEventDto);
+
 }

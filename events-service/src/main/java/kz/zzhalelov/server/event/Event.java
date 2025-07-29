@@ -2,11 +2,14 @@ package kz.zzhalelov.server.event;
 
 import jakarta.persistence.*;
 import kz.zzhalelov.server.category.Category;
+import kz.zzhalelov.server.event.eventEnum.EventState;
+import kz.zzhalelov.server.request.Request;
 import kz.zzhalelov.server.user.User;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,7 +30,7 @@ public class Event {
     @Column(length = 120)
     private String title;
     @Column(name = "confirmed_requests")
-    private Integer confirmedRequests;
+    private Long confirmedRequests;
     @Column(name = "created_on")
     private LocalDateTime createdOn;
     @Column(name = "participant_limit")
@@ -40,8 +43,11 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventState state;
     @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-    private Integer views;
+    private Long views;
     @Column(name = "event_date")
     private LocalDateTime eventDate;
+    @OneToMany(mappedBy = "event")
+    private List<Request> requests;
 }

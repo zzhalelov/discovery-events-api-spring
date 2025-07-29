@@ -1,4 +1,4 @@
-package kz.zzhalelov.server.event;
+package kz.zzhalelov.server.event.eventEnum;
 
 public enum EventState {
     PENDING,
