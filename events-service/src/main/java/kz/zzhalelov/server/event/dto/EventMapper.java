@@ -15,14 +15,7 @@ public class EventMapper {
         Event event = new Event();
         event.setAnnotation(eventCreateDto.getAnnotation());
         event.setDescription(eventCreateDto.getDescription());
-
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//        LocalDateTime eventDate = LocalDateTime.parse(eventCreateDto.getEventDate(), formatter);
         event.setEventDate(eventCreateDto.getEventDate());
-
-//        LocalDateTime createdDate = LocalDateTime.parse(eventCreateDto.getEventDate(), formatter);
-//        event.setCreatedOn(createdDate);
-
         event.setLat(eventCreateDto.getLocation().getLat());
         event.setLon(eventCreateDto.getLocation().getLon());
         event.setPaid(eventCreateDto.getPaid());
@@ -33,50 +26,93 @@ public class EventMapper {
         return event;
     }
 
+    public Event fromUpdate(EventUpdateDto eventUpdateDto) {
+        Event event = new Event();
+        event.setAnnotation(eventUpdateDto.getAnnotation());
+        event.setDescription(eventUpdateDto.getDescription());
+        event.setEventDate(eventUpdateDto.getEventDate());
+        event.setLat(eventUpdateDto.getLocation() != null ? eventUpdateDto.getLocation().getLat() : null);
+        event.setLon(eventUpdateDto.getLocation() != null ? eventUpdateDto.getLocation().getLon() : null);
+        event.setPaid(eventUpdateDto.getPaid());
+        event.setParticipantLimit(eventUpdateDto.getParticipantLimit());
+        event.setRequestModeration(eventUpdateDto.getRequestModeration());
+        event.setTitle(eventUpdateDto.getTitle());
+
+        if (eventUpdateDto.getState() != null) {
+            switch (eventUpdateDto.getState()) {
+                case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
+                case SEND_TO_REVIEW -> event.setState((EventState.PENDING));
+            }
+        }
+        return event;
+    }
+
+    public Event fromAdminUpdate(AdminEventUpdateDto adminEventUpdateDto) {
+        Event event = new Event();
+        event.setAnnotation(adminEventUpdateDto.getAnnotation());
+        event.setDescription(adminEventUpdateDto.getDescription());
+        event.setEventDate(adminEventUpdateDto.getEventDate());
+        event.setLat(adminEventUpdateDto.getLocation() != null ? adminEventUpdateDto.getLocation().getLat() : null);
+        event.setLon(adminEventUpdateDto.getLocation() != null ? adminEventUpdateDto.getLocation().getLat() : null);
+        event.setPaid(adminEventUpdateDto.getPaid());
+        event.setParticipantLimit(adminEventUpdateDto.getParticipantLimit());
+        event.setRequestModeration(adminEventUpdateDto.getRequestModeration());
+        event.setTitle(adminEventUpdateDto.getTitle());
+        return event;
+    }
+
     public EventResponseDto toResponse(Event event) {
-        EventResponseDto eventResponseDto = new EventResponseDto();
-        eventResponseDto.setId(event.getId());
-        eventResponseDto.setTitle(event.getTitle());
-        eventResponseDto.setAnnotation(event.getAnnotation());
+        EventResponseDto dto = new EventResponseDto();
+        dto.setId(event.getId());
+        dto.setTitle(event.getTitle());
+        dto.setAnnotation(event.getAnnotation());
+        dto.setDescription(event.getDescription());
+        dto.setPaid(event.getPaid());
+        dto.setParticipantLimit(event.getParticipantLimit());
+        dto.setState(event.getState());
+        dto.setRequestModeration(event.getRequestModeration());
 
-        CategoryResponseDto categoryDto = new CategoryResponseDto();
-        categoryDto.setId(event.getCategory().getId());
-        categoryDto.setName(event.getCategory().getName());
-        eventResponseDto.setCategory(categoryDto);
+        if (event.getEventDate() != null) {
+            dto.setEventDate(event.getEventDate());
+        }
 
-        eventResponseDto.setPaid(event.getPaid());
-        eventResponseDto.setDescription(event.getDescription());
+        if (event.getCreatedOn() != null) {
+            dto.setCreatedOn(event.getCreatedOn());
+        }
 
-        eventResponseDto.setEventDate(event.getEventDate());
-        eventResponseDto.setCreatedOn(event.getCreatedOn());
+        if (event.getPublishedOn() != null) {
+            dto.setPublishedOn(event.getPublishedOn());
+        }
 
-        eventResponseDto.setInitiator(new UserShortDto(event.getInitiator().getId(), event.getInitiator().getName()));
-        eventResponseDto.setViews(event.getViews());
-        eventResponseDto.setConfirmedRequests(event.getConfirmedRequests());
-        eventResponseDto.setParticipantLimit(event.getParticipantLimit());
-        eventResponseDto.setState(event.getState());
-        eventResponseDto.setLocation(new LocationDto(event.getLat(), event.getLon()));
-        eventResponseDto.setRequestModeration(event.getRequestModeration());
-        eventResponseDto.setPublishedOn(event.getPublishedOn());
-        return eventResponseDto;
+        if (event.getCategory() != null) {
+            dto.setCategory(new CategoryResponseDto(
+                    event.getCategory().getId(),
+                    event.getCategory().getName()
+            ));
+        }
+
+        if (event.getInitiator() != null) {
+            dto.setInitiator(new UserShortDto(
+                    event.getInitiator().getId(),
+                    event.getInitiator().getName()
+            ));
+        }
+
+        if (event.getLat() != null && event.getLon() != null) {
+            dto.setLocation(new LocationDto(event.getLat(), event.getLon()));
+        } else {
+            dto.setLocation(null);
+        }
+
+        dto.setViews(event.getViews() != null ? event.getViews() : 0);
+        dto.setConfirmedRequests(event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0);
+
+        return dto;
     }
 
     public List<EventResponseDto> toResponse(List<Event> events) {
         return events.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
-    }
-
-    public Event fromUpdate(EventUpdateDto eventUpdateDto) {
-        Event event = new Event();
-        event.setAnnotation(eventUpdateDto.getAnnotation());
-        event.setDescription(eventUpdateDto.getDescription());
-
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//        LocalDateTime eventDate = LocalDateTime.parse(eventUpdateDto.getEventDate(), formatter);
-        event.setEventDate(eventUpdateDto.getEventDate());
-//        LocalDateTime updatedDate = LocalDateTime.parse(eventUpdateDto.getEventDate(), formatter);
-//        event.setEventDate(updatedDate);
-        return event;
     }
 }
