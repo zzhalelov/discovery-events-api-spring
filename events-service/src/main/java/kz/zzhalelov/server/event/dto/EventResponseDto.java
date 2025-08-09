@@ -31,7 +31,7 @@ public class EventResponseDto {
     Boolean paid;
     @Min(0)
     @Max(10)
-    Integer participantLimit;
+    Long participantLimit;
     Boolean requestModeration;
     @NotBlank(message = "")
     @Size(min = 3, max = 120)

@@ -24,9 +24,9 @@ public class AdminEventUpdateDto {
     LocationDto location;
     Boolean paid;
     @Min(0)
-    Integer participantLimit;
+    Long participantLimit;
     Boolean requestModeration;
     @Size(min = 3, max = 120)
     String title;
-    AdminStateAction state;
+    AdminStateAction stateAction;
 }

@@ -3,6 +3,7 @@ package kz.zzhalelov.server.event.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import kz.zzhalelov.server.event.eventEnum.PublicStateAction;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -22,8 +23,9 @@ public class EventUpdateDto {
     LocationDto location;
     Boolean paid;
     @Min(0)
-    Integer participantLimit;
+    Long participantLimit;
     Boolean requestModeration;
     @Size(min = 3, max = 120)
     String title;
+    PublicStateAction stateAction;
 }

@@ -12,6 +12,8 @@ import kz.zzhalelov.server.exception.ForbiddenException;
 import kz.zzhalelov.server.exception.NotFoundException;
 import kz.zzhalelov.server.user.User;
 import kz.zzhalelov.server.user.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -51,14 +53,14 @@ public class EventServiceImpl implements EventService {
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
+        event.setConfirmedRequests(0L);
         return eventRepository.save(event);
     }
 
     @Override
-    public List<Event> findAllByUserId(long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        return eventRepository.findAllByInitiator(user);
+    public List<Event> findAllByInitiator(long userId, int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
+        return eventRepository.findAllByInitiator_Id(userId, pageable);
     }
 
     @Override
@@ -75,6 +77,34 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public Event updateByAdmin(Event event, long eventId) {
+        Event existingEvent = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+
+        if (event.getEventDate() != null) {
+            if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+                throw new ConflictException("дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+            }
+        }
+
+        if (event.getState() != null && event.getState() == EventState.PUBLISHED) {
+            if (!existingEvent.getState().equals(EventState.PENDING)) {
+                throw new ConflictException("событие можно публиковать, только если оно в состоянии ожидания публикации");
+            }
+            existingEvent.setPublishedOn(LocalDateTime.now());
+        }
+
+        if (event.getState() != null && event.getState() == EventState.CANCELED) {
+            if (existingEvent.getState().equals(EventState.PUBLISHED)) {
+                throw new ConflictException("событие можно отклонить, только если оно еще не опубликовано");
+            }
+        }
+
+        merge(existingEvent, event);
+        return eventRepository.save(existingEvent);
+    }
+
+    @Override
     public List<Event> searchEvents(ParamEventDto paramEventDto) {
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -85,13 +115,13 @@ public class EventServiceImpl implements EventService {
             builder.and(event.eventDate.loe(paramEventDto.getRangeEnd()));
         }
         if (paramEventDto.getUserIds() != null && !paramEventDto.getUserIds().isEmpty()) {
-            builder.and(QEvent.event.initiator.id.in(paramEventDto.getUserIds()));
+            builder.and(event.initiator.id.in(paramEventDto.getUserIds()));
         }
         if (paramEventDto.getStates() != null && !paramEventDto.getStates().isEmpty()) {
-            builder.and(QEvent.event.state.stringValue().in(paramEventDto.getStates()));
+            builder.and(event.state.in(paramEventDto.getStates()));
         }
         if (paramEventDto.getCatIds() != null && !paramEventDto.getCatIds().isEmpty()) {
-            builder.and(QEvent.event.category.id.in(paramEventDto.getCatIds()));
+            builder.and(event.category.id.in(paramEventDto.getCatIds()));
         }
         return jpaQueryFactory
                 .selectFrom(event)
@@ -101,9 +131,50 @@ public class EventServiceImpl implements EventService {
                 .fetch();
     }
 
+    @Override
+    public Event findById(long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не нпйдено"));
+
+        if (!event.getState().equals(EventState.PUBLISHED)) {
+            throw new NotFoundException("Событие не нпйдено");
+        }
+        return event;
+    }
+
     private void merge(Event existingEvent, Event updatedEvent) {
-        if (updatedEvent.getState() == EventState.PENDING) {
+        if (updatedEvent.getAnnotation() != null && !updatedEvent.getAnnotation().isBlank()) {
+            existingEvent.setAnnotation(updatedEvent.getAnnotation());
+        }
+        if (updatedEvent.getCategory() != null) {
+            existingEvent.setCategory(updatedEvent.getCategory());
+        }
+        if (updatedEvent.getDescription() != null && !updatedEvent.getDescription().isBlank()) {
+            existingEvent.setDescription(updatedEvent.getDescription());
+        }
+        if (updatedEvent.getEventDate() != null) {
+            existingEvent.setEventDate(updatedEvent.getEventDate());
+        }
+        if (updatedEvent.getLon() != null) {
+            existingEvent.setLon(updatedEvent.getLon());
+        }
+        if (updatedEvent.getLat() != null) {
+            existingEvent.setLat(updatedEvent.getLat());
+        }
+        if (updatedEvent.getPaid() != null) {
+            existingEvent.setPaid(updatedEvent.getPaid());
+        }
+        if (updatedEvent.getParticipantLimit() != null) {
+            existingEvent.setParticipantLimit(updatedEvent.getParticipantLimit());
+        }
+        if (updatedEvent.getRequestModeration() != null) {
+            existingEvent.setRequestModeration(updatedEvent.getRequestModeration());
+        }
+        if (updatedEvent.getState() != null) {
             existingEvent.setState(updatedEvent.getState());
+        }
+        if (updatedEvent.getTitle() != null && !updatedEvent.getTitle().isBlank()) {
+            existingEvent.setTitle(updatedEvent.getTitle());
         }
     }
 }

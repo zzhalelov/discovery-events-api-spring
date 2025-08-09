@@ -1,5 +1,6 @@
 package kz.zzhalelov.server.category;
 
+import kz.zzhalelov.server.event.EventRepository;
 import kz.zzhalelov.server.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -8,9 +9,11 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository, EventRepository eventRepository) {
         this.categoryRepository = categoryRepository;
+        this.eventRepository = eventRepository;
     }
 
     @Override

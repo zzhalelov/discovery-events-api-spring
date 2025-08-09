@@ -2,7 +2,6 @@ package kz.zzhalelov.server.request;
 
 import jakarta.persistence.*;
 import kz.zzhalelov.server.event.Event;
-import kz.zzhalelov.server.event.EventState;
 import kz.zzhalelov.server.user.User;
 import lombok.Getter;
 import lombok.Setter;

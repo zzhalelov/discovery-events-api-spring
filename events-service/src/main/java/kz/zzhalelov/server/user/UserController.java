@@ -34,7 +34,7 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable int userId) {
+    public void deleteById(@PathVariable long userId) {
         userService.delete(userId);
     }
 }

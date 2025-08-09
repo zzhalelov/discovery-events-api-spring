@@ -34,7 +34,7 @@ public class Event {
     @Column(name = "created_on")
     private LocalDateTime createdOn;
     @Column(name = "participant_limit")
-    private Integer participantLimit;
+    private Long participantLimit;
     private Boolean paid;
     @Column(name = "request_moderation")
     private Boolean requestModeration;

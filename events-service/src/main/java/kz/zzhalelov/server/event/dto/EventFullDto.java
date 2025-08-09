@@ -19,7 +19,7 @@ public class EventFullDto {
     String annotation;
     @NotNull
     CategoryResponseDto category;
-    Integer confirmedRequests;
+    Long confirmedRequests;
     String createdOn;
     @NotBlank
     @Size(min = 20, max = 7000)
@@ -34,12 +34,12 @@ public class EventFullDto {
     Double lon;
     @NotNull
     Boolean paid;
-    Integer participantLimit;
+    Long participantLimit;
     String publishedOn;
     Boolean requestModeration;
     EventState state;
     @NotBlank
     @Size(min = 3, max = 120)
     String title;
-    Integer views;
+    Long views;
 }

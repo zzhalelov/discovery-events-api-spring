@@ -7,3 +7,6 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
+#    show-sql: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss

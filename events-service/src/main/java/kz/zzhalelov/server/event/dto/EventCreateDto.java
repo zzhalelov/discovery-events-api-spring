@@ -26,7 +26,7 @@ public class EventCreateDto {
     @NotNull
     Boolean paid;
     @Min(0)
-    Integer participantLimit;
+    Long participantLimit;
     Boolean requestModeration;
     @NotBlank(message = "Заголовок не заполнен")
     @Size(min = 3, max = 120)

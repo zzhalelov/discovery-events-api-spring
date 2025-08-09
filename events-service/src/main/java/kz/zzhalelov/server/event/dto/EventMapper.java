@@ -2,6 +2,7 @@ package kz.zzhalelov.server.event.dto;
 
 import kz.zzhalelov.server.category.dto.CategoryResponseDto;
 import kz.zzhalelov.server.event.Event;
+import kz.zzhalelov.server.event.eventEnum.AdminStateAction;
 import kz.zzhalelov.server.event.eventEnum.EventState;
 import kz.zzhalelov.server.user.dto.UserShortDto;
 import org.springframework.stereotype.Component;
@@ -38,8 +39,8 @@ public class EventMapper {
         event.setRequestModeration(eventUpdateDto.getRequestModeration());
         event.setTitle(eventUpdateDto.getTitle());
 
-        if (eventUpdateDto.getState() != null) {
-            switch (eventUpdateDto.getState()) {
+        if (eventUpdateDto.getStateAction() != null) {
+            switch (eventUpdateDto.getStateAction()) {
                 case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
                 case SEND_TO_REVIEW -> event.setState((EventState.PENDING));
             }
@@ -58,6 +59,14 @@ public class EventMapper {
         event.setParticipantLimit(adminEventUpdateDto.getParticipantLimit());
         event.setRequestModeration(adminEventUpdateDto.getRequestModeration());
         event.setTitle(adminEventUpdateDto.getTitle());
+
+        if (adminEventUpdateDto.getStateAction() != null) {
+            if (adminEventUpdateDto.getStateAction()== AdminStateAction.PUBLISH_EVENT) {
+                event.setState(EventState.PUBLISHED);
+            } else {
+                event.setState(EventState.CANCELED);
+            }
+        }
         return event;
     }
 

@@ -3,6 +3,7 @@ package kz.zzhalelov.server.request.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import kz.zzhalelov.server.event.Event;
+import kz.zzhalelov.server.event.dto.EventShortDto;
 import kz.zzhalelov.server.request.RequestStatus;
 import kz.zzhalelov.server.user.dto.UserShortDto;
 import lombok.AccessLevel;
@@ -16,7 +17,7 @@ public class RequestResponseDto {
     @NotNull
     UserShortDto requester;
     @NotNull
-    Event event;
+    Long event;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     String created;
     @NotNull

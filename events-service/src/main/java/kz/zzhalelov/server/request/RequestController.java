@@ -1,11 +1,14 @@
 package kz.zzhalelov.server.request;
 
-import kz.zzhalelov.server.request.dto.RequestCreateDto;
-import kz.zzhalelov.server.request.dto.RequestMapper;
-import kz.zzhalelov.server.request.dto.RequestResponseDto;
+import kz.zzhalelov.server.event.Event;
+import kz.zzhalelov.server.event.dto.EventResponseDto;
+import kz.zzhalelov.server.event.dto.EventUpdateDto;
+import kz.zzhalelov.server.request.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +23,15 @@ public class RequestController {
                                      @PathVariable long userId,
                                      @RequestParam long eventId) {
         Request request = requestMapper.fromCreate(requestCreateDto);
-        Request createdRequest = requestService.create(request, userId, eventId);
+        Request createdRequest = requestService.create(userId, eventId);
         return requestMapper.toResponse(createdRequest);
+    }
+
+    @PatchMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public RequestStatusResponseDto updateRequestStatuses(@PathVariable long userId,
+                                                          @PathVariable long eventId,
+                                                          @RequestBody RequestStatusUpdateDto dto) {
+        return requestService.updateStatus(dto, userId, eventId);
     }
 }

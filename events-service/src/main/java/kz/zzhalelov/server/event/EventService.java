@@ -8,12 +8,16 @@ import java.util.List;
 public interface EventService {
     Event create(Event event, long userId, Long categoryId);
 
-    List<Event> findAllByUserId(long userId);
+    List<Event> findAllByInitiator(long userId, int from, int size);
 
     List<Event> findAll();
 
     Event update(Event event, long userId, long eventId);
 
+    Event updateByAdmin(Event event, long eventId);
+
     List<Event> searchEvents(ParamEventDto paramEventDto);
+
+    Event findById(long eventId);
 
 }
