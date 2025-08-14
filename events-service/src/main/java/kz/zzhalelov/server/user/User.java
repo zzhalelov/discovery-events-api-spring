@@ -1,6 +1,7 @@
 package kz.zzhalelov.server.user;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ public class User {
     private Long id;
     @Column(length = 250)
     private String name;
-    @Column(length = 254)
+    @Column(length = 254, nullable = true, unique = true)
+    @Email
     private String email;
 }

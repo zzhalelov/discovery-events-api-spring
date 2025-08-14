@@ -7,8 +7,8 @@ import kz.zzhalelov.server.category.Category;
 import kz.zzhalelov.server.category.CategoryRepository;
 import kz.zzhalelov.server.event.dto.ParamEventDto;
 import kz.zzhalelov.server.event.eventEnum.EventState;
+import kz.zzhalelov.server.exception.BadRequestException;
 import kz.zzhalelov.server.exception.ConflictException;
-import kz.zzhalelov.server.exception.ForbiddenException;
 import kz.zzhalelov.server.exception.NotFoundException;
 import kz.zzhalelov.server.user.User;
 import kz.zzhalelov.server.user.UserRepository;
@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -49,6 +49,16 @@ public class EventServiceImpl implements EventService {
 
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+
+        if (event.getEventDate() == null) {
+            throw new BadRequestException("Дата и время события обязательны");
+        }
+
+        if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new BadRequestException(
+                    "Дата и время события должны быть не ранее, чем через два часа от текущего момента");
+        }
+
         event.setInitiator(user);
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
@@ -64,14 +74,29 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> findAll() {
-        return eventRepository.findAll();
+    public List<Event> findAll(int from, int size, List<Long> categoryIds) {
+        Pageable pageable = PageRequest.of(from / size, size);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            return eventRepository.findByCategoryIdIn(categoryIds, pageable).getContent();
+        }
+        return eventRepository.findAll(pageable).getContent();
     }
 
     @Override
     public Event update(Event updatedEvent, long userId, long eventId) {
         Event existingEvent = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+
+        if (!(existingEvent.getState() == EventState.CANCELED || existingEvent.getState() == EventState.PENDING)) {
+            throw new ConflictException("Изменять можно только отмененные события или события в ожидании модерации");
+        }
+
+        if (updatedEvent.getEventDate() != null &&
+                updatedEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new BadRequestException("Дата события должна быть не раньше, чем через два часа от текущего момента");
+        }
+
         merge(existingEvent, updatedEvent);
         return eventRepository.save(existingEvent);
     }
@@ -83,7 +108,8 @@ public class EventServiceImpl implements EventService {
 
         if (event.getEventDate() != null) {
             if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                throw new ConflictException("дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+                throw new BadRequestException(
+                        "дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
             }
         }
 
@@ -114,15 +140,44 @@ public class EventServiceImpl implements EventService {
         if (paramEventDto.getRangeEnd() != null) {
             builder.and(event.eventDate.loe(paramEventDto.getRangeEnd()));
         }
-        if (paramEventDto.getUserIds() != null && !paramEventDto.getUserIds().isEmpty()) {
-            builder.and(event.initiator.id.in(paramEventDto.getUserIds()));
+
+        List<Long> userIds = paramEventDto.getUserIds();
+        if (userIds != null) {
+            userIds = userIds.stream()
+                    .filter(id -> id != null && id > 0)
+                    .toList();
+            if (userIds.isEmpty() && !paramEventDto.getUserIds().isEmpty()) {
+                return Collections.emptyList();
+            }
+            if (!userIds.isEmpty()) {
+                builder.and(event.initiator.id.in(userIds));
+            }
         }
+
+//        if (userIds != null && !userIds.isEmpty()) {
+//            builder.and(event.initiator.id.in(userIds));
+//        }
+
         if (paramEventDto.getStates() != null && !paramEventDto.getStates().isEmpty()) {
             builder.and(event.state.in(paramEventDto.getStates()));
         }
-        if (paramEventDto.getCatIds() != null && !paramEventDto.getCatIds().isEmpty()) {
-            builder.and(event.category.id.in(paramEventDto.getCatIds()));
+
+        List<Long> catIds = paramEventDto.getCatIds();
+        if (catIds != null) {
+            catIds = catIds.stream()
+                    .filter(id -> id != null && id > 0) // убираем null и 0
+                    .toList();
+            if (catIds.isEmpty() && !paramEventDto.getCatIds().isEmpty()) {
+                return Collections.emptyList();
+            }
+            if (!catIds.isEmpty()) {
+                builder.and(event.category.id.in(catIds));
+            }
         }
+
+//        if (catIds != null && !catIds.isEmpty()) {
+//            builder.and(event.category.id.in(catIds));
+//        }
         return jpaQueryFactory
                 .selectFrom(event)
                 .where(builder)
@@ -139,6 +194,7 @@ public class EventServiceImpl implements EventService {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Событие не нпйдено");
         }
+
         return event;
     }
 

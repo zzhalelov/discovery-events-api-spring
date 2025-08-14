@@ -24,10 +24,10 @@ public class EventCreateDto {
     LocalDateTime eventDate;
     LocationDto location;
     @NotNull
-    Boolean paid;
+    Boolean paid = Boolean.FALSE;
     @Min(0)
-    Long participantLimit;
-    Boolean requestModeration;
+    Long participantLimit = 0L;
+    Boolean requestModeration = Boolean.TRUE;
     @NotBlank(message = "Заголовок не заполнен")
     @Size(min = 3, max = 120)
     String title;

@@ -5,6 +5,8 @@ import kz.zzhalelov.server.category.dto.CategoryCreateDto;
 import kz.zzhalelov.server.category.dto.CategoryMapper;
 import kz.zzhalelov.server.category.dto.CategoryResponseDto;
 import kz.zzhalelov.server.category.dto.CategoryUpdateDto;
+import kz.zzhalelov.server.event.EventRepository;
+import kz.zzhalelov.server.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class AdminCategoryController {
     private final CategoryMapper categoryMapper;
     private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
 
     //POST
     @PostMapping
@@ -38,6 +42,8 @@ public class AdminCategoryController {
     @DeleteMapping("/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable long catId) {
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
         categoryService.delete(catId);
     }
 }

@@ -10,7 +10,7 @@ public interface EventService {
 
     List<Event> findAllByInitiator(long userId, int from, int size);
 
-    List<Event> findAll();
+    List<Event> findAll(int from, int size, List<Long> categoryIds);
 
     Event update(Event event, long userId, long eventId);
 

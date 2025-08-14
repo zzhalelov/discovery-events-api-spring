@@ -1,7 +1,9 @@
 package kz.zzhalelov.server.category;
 
 import kz.zzhalelov.server.event.EventRepository;
+import kz.zzhalelov.server.exception.ConflictException;
 import kz.zzhalelov.server.exception.NotFoundException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category create(Category category) {
+        categoryRepository.findCategoryByName(category.getName())
+                .filter(cat -> !cat.getId().equals(category.getId()))
+                .ifPresent(cat -> {
+                    throw new ConflictException("Категория с таким именем уже существует");
+                });
         return categoryRepository.save(category);
     }
 
@@ -25,18 +32,31 @@ public class CategoryServiceImpl implements CategoryService {
     public Category update(Long catId, Category updatedCategory) {
         Category existingCategory = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+
+        categoryRepository.findCategoryByName(updatedCategory.getName())
+                .filter(cat -> !cat.getId().equals(catId))
+                .ifPresent(cat -> {
+                    throw new ConflictException("Категория с таким именем уже существует");
+                });
         merge(existingCategory, updatedCategory);
         return categoryRepository.save(existingCategory);
     }
 
     @Override
     public void delete(Long catId) {
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
+
+        boolean hasEvents = eventRepository.existsByCategoryId(catId);
+        if (hasEvents) {
+            throw new ConflictException("Нельзя удалить категорию с привязанными событиями");
+        }
         categoryRepository.deleteById(catId);
     }
 
     @Override
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
+    public List<Category> findAll(Pageable pageable) {
+        return categoryRepository.findAll(pageable).getContent();
     }
 
     @Override

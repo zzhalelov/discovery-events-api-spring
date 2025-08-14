@@ -5,6 +5,8 @@ import kz.zzhalelov.server.user.dto.UserCreateDto;
 import kz.zzhalelov.server.user.dto.UserMapper;
 import kz.zzhalelov.server.user.dto.UserResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,10 +28,21 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponseDto> findAll(@RequestParam List<Long> ids) {
-        return userService.findAll(ids).stream()
-                .map(userMapper::toResponse)
-                .collect(Collectors.toList());
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserResponseDto> findAll(@RequestParam(required = false) List<Long> ids,
+                                         @RequestParam(defaultValue = "0") int from,
+                                         @RequestParam(defaultValue = "10") int size) {
+        if (ids != null && !ids.isEmpty()) {
+            return userService.findAll(ids).stream()
+                    .map(userMapper::toResponse)
+                    .collect(Collectors.toList());
+        } else {
+            Pageable pageable = PageRequest.of(from / size, size);
+            return userService.findAll(pageable)
+                    .stream()
+                    .map(userMapper::toResponse)
+                    .collect(Collectors.toList());
+        }
     }
 
     @DeleteMapping("/{userId}")

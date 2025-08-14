@@ -19,8 +19,11 @@ public class PublicEventController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public List<EventResponseDto> findAll() {
-        return eventService.findAll()
+    public List<EventResponseDto> findAll(@RequestParam(defaultValue = "0") int from,
+                                          @RequestParam(defaultValue = "10") int size,
+                                          @RequestParam(required = false) List<Long> categories
+    ) {
+        return eventService.findAll(from, size, categories)
                 .stream()
                 .map(eventMapper::toResponse)
                 .collect(Collectors.toList());

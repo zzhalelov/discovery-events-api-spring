@@ -14,6 +14,7 @@ import kz.zzhalelov.server.user.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,8 +48,6 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
 
-        Request request = new Request();
-
         if (event.getInitiator().getId() == userId) {
             throw new ConflictException("Инициатор события не может добавить запрос на участие в своём событии ");
         }
@@ -57,26 +56,36 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("Нельзя участвовать в неопубликованном событии");
         }
 
-        if (event.getParticipantLimit() != 0 && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
-            throw new ConflictException("Если у события достигнут лимит запросов на участие - необходимо вернуть ошибку");
+        long totalRequests = requestRepository.countByEvent_Id(eventId);
+
+        if (event.getParticipantLimit() > 0 && totalRequests >= event.getParticipantLimit()) {
+            throw new ConflictException("Лимит участников для события достигнут");
         }
 
+//        if (event.getParticipantLimit() != 0 && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
+//            throw new ConflictException("Если у события достигнут лимит запросов на участие");
+//        }
+
+        Request request = new Request();
         request.setStatus(RequestStatus.PENDING);
-
-        if (!event.getRequestModeration() && (event.getParticipantLimit() == 0)) {
-            request.setStatus(RequestStatus.CONFIRMED);
-        }
-
         request.setRequester(requester);
         request.setCreated(LocalDateTime.now());
         request.setEvent(event);
+
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            request.setStatus(RequestStatus.CONFIRMED);
+            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
+        } else {
+            request.setStatus(RequestStatus.PENDING);
+        }
         return requestRepository.save(request);
     }
 
     @Override
-    public RequestStatusResponseDto updateStatus(RequestStatusUpdateDto dto,
-                                                 long userId,
-                                                 long eventId) {
+    public RequestStatusResponseDto update(RequestStatusUpdateDto dto,
+                                           long userId,
+                                           long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
 
@@ -95,18 +104,35 @@ public class RequestServiceImpl implements RequestService {
             }
         });
 
-        List<Request> confirmed = List.of();
-        List<Request> rejected = List.of();
+        long confirmedRequests = requestRepository.countByEvent_IdAndStatus(eventId, RequestStatus.CONFIRMED);
+
+        List<Request> confirmed = new ArrayList<>();
+        List<Request> rejected = new ArrayList<>();
 
         if (dto.getStatus() == RequestStatus.CONFIRMED) {
-            confirmed = requests;
-            requests.forEach(request -> request.setStatus(RequestStatus.CONFIRMED));
+            for (Request request : requests) {
+                if (confirmedRequests >= event.getParticipantLimit()) {
+                    throw new ConflictException("Лимит заявок для события уже достигнут");
+                }
+                request.setStatus(RequestStatus.CONFIRMED);
+                confirmed.add(request);
+                confirmedRequests++;
+            }
+
+            if (confirmedRequests >= event.getParticipantLimit()) {
+                List<Request> pendingRequests = requestRepository
+                        .findAllByEvent_IdAndStatus(eventId, RequestStatus.PENDING);
+                pendingRequests.forEach(pendingRequest -> pendingRequest.setStatus(RequestStatus.REJECTED));
+                rejected.addAll(pendingRequests);
+                requestRepository.saveAll(pendingRequests);
+            }
         } else if (dto.getStatus() == RequestStatus.REJECTED) {
-            rejected = requests;
             requests.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+            rejected.addAll(requests);
         }
 
-        requestRepository.saveAll(requests);
+        requestRepository.saveAll(confirmed);
+        requestRepository.saveAll(rejected);
 
         RequestStatusResponseDto responseDto = new RequestStatusResponseDto();
         responseDto.setConfirmedRequests(requestMapper.toResponse(confirmed));

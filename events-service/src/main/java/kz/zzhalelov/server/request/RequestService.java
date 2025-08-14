@@ -10,7 +10,7 @@ public interface RequestService {
 
 //    RequestStatusUpdateDto updateStatus(RequestStatusResponseDto dto, long userId, long eventId);
 
-    RequestStatusResponseDto updateStatus(RequestStatusUpdateDto dto,
+    RequestStatusResponseDto update(RequestStatusUpdateDto dto,
                                           long userId,
                                           long eventId);
 

@@ -33,7 +33,7 @@ public class EventController {
     @ResponseStatus(HttpStatus.OK)
     public List<EventResponseDto> findAllByInitiator(@PathVariable long userId,
                                                      @RequestParam(defaultValue = "0") int from,
-                                                     @RequestParam(defaultValue = "10")     int size) {
+                                                     @RequestParam(defaultValue = "10") int size) {
         List<Event> userEvents = eventService.findAllByInitiator(userId, from, size);
         return userEvents.stream()
                 .map(eventMapper::toResponse)
