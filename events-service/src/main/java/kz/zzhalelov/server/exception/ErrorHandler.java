@@ -25,24 +25,39 @@ public class ErrorHandler {
                 ));
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFound(NotFoundException ex) {
-        log.warn(ex.getMessage());
-        return new ErrorResponse(ex.getMessage());
+    public ApiError handleNotFound(NotFoundException ex) {
+        return new ApiError(
+                "Ошибка при формировании запроса пользователем",
+                ex.getMessage(),
+                Collections.emptyList(),
+                HttpStatus.NOT_FOUND.name(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ));
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse handleForbidden(ForbiddenException ex) {
-        log.warn(ex.getMessage());
-        return new ErrorResponse(ex.getMessage());
+    public ApiError handleForbidden(ForbiddenException ex) {
+        return new ApiError(
+                "Ошибка при формировании запроса пользователем",
+                ex.getMessage(),
+                Collections.emptyList(),
+                HttpStatus.FORBIDDEN.name(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ));
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflict(ConflictException ex) {
-        log.warn(ex.getMessage());
-        return new ErrorResponse(ex.getMessage());
+    public ApiError handleConflict(ConflictException ex) {
+        return new ApiError(
+                "Ошибка при формировании запроса пользователем",
+                ex.getMessage(),
+                Collections.emptyList(),
+                HttpStatus.CONFLICT.name(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ));
     }
 }
