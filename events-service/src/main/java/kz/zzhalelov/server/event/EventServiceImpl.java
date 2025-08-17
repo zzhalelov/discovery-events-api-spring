@@ -5,7 +5,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import kz.zzhalelov.server.category.Category;
 import kz.zzhalelov.server.category.CategoryRepository;
-import kz.zzhalelov.server.event.dto.ParamEventDto;
+import kz.zzhalelov.server.event.dto.EventFullDto;
+import kz.zzhalelov.server.event.dto.EventMapper;
+import kz.zzhalelov.server.event.dto.ParamAdminEventDto;
+import kz.zzhalelov.server.event.dto.ParamPublicEventDto;
+import kz.zzhalelov.server.event.eventEnum.EventSortParams;
 import kz.zzhalelov.server.event.eventEnum.EventState;
 import kz.zzhalelov.server.exception.BadRequestException;
 import kz.zzhalelov.server.exception.ConflictException;
@@ -27,15 +31,17 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final JPAQueryFactory jpaQueryFactory;
     private static final QEvent event = QEvent.event;
+    private final EventMapper eventMapper;
 
     public EventServiceImpl(EventRepository eventRepository,
                             UserRepository userRepository,
                             CategoryRepository categoryRepository,
-                            EntityManager em) {
+                            EntityManager em, EventMapper eventMapper) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.jpaQueryFactory = new JPAQueryFactory(em);
+        this.eventMapper = eventMapper;
     }
 
     @Override
@@ -74,13 +80,56 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> findAll(int from, int size, List<Long> categoryIds) {
-        Pageable pageable = PageRequest.of(from / size, size);
-
-        if (categoryIds != null && !categoryIds.isEmpty()) {
-            return eventRepository.findByCategoryIdIn(categoryIds, pageable).getContent();
+    public List<Event> findAll(ParamPublicEventDto params) {
+        if (params.getRangeEnd() != null && params.getRangeStart() != null && params.getRangeEnd().isBefore(params.getRangeStart())) {
+            throw new BadRequestException("Дата начала не может быть позже жаты окончания");
         }
-        return eventRepository.findAll(pageable).getContent();
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (params.getRangeStart() != null) {
+            builder.and(event.eventDate.goe(params.getRangeStart()));
+        }
+        if (params.getRangeEnd() != null) {
+            builder.and(event.eventDate.loe(params.getRangeEnd()));
+        }
+
+        List<Long> catIds = params.getCategories();
+        if (catIds != null) {
+            catIds = catIds.stream()
+                    .filter(id -> id != null && id > 0) // убираем null и 0
+                    .toList();
+            if (catIds.isEmpty() && !params.getCategories().isEmpty()) {
+                return Collections.emptyList();
+            }
+            if (!catIds.isEmpty()) {
+                builder.and(event.category.id.in(catIds));
+            }
+        }
+
+        if (params.getText() != null && !params.getText().isBlank()) {
+            builder.and(event.annotation.containsIgnoreCase(params.getText())
+                    .or(event.description.containsIgnoreCase(params.getText())));
+        }
+
+        if (params.getPaid() != null && params.getPaid()) {
+            builder.and(event.paid.isTrue());
+        }
+
+        if (params.getOnlyAvailable()) {
+            builder.and(event.participantLimit.eq(0)
+                    .or(event.confirmedRequests.lt(event.participantLimit)));
+        }
+
+        return jpaQueryFactory
+                .selectFrom(event)
+                .where(builder)
+                .orderBy(params.getSort() == EventSortParams.EVENT_DATE
+                        ? event.eventDate.desc()
+                        : event.views.desc())
+                .offset(params.getFrom())
+                .limit(params.getSize())
+                .fetch();
     }
 
     @Override
@@ -125,28 +174,27 @@ public class EventServiceImpl implements EventService {
                 throw new ConflictException("событие можно отклонить, только если оно еще не опубликовано");
             }
         }
-
         merge(existingEvent, event);
         return eventRepository.save(existingEvent);
     }
 
     @Override
-    public List<Event> searchEvents(ParamEventDto paramEventDto) {
+    public List<Event> searchEvents(ParamAdminEventDto dto) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (paramEventDto.getRangeStart() != null) {
-            builder.and(event.eventDate.goe(paramEventDto.getRangeStart()));
+        if (dto.getRangeStart() != null) {
+            builder.and(event.eventDate.goe(dto.getRangeStart()));
         }
-        if (paramEventDto.getRangeEnd() != null) {
-            builder.and(event.eventDate.loe(paramEventDto.getRangeEnd()));
+        if (dto.getRangeEnd() != null) {
+            builder.and(event.eventDate.loe(dto.getRangeEnd()));
         }
 
-        List<Long> userIds = paramEventDto.getUserIds();
+        List<Long> userIds = dto.getUserIds();
         if (userIds != null) {
             userIds = userIds.stream()
                     .filter(id -> id != null && id > 0)
                     .toList();
-            if (userIds.isEmpty() && !paramEventDto.getUserIds().isEmpty()) {
+            if (userIds.isEmpty() && !dto.getUserIds().isEmpty()) {
                 return Collections.emptyList();
             }
             if (!userIds.isEmpty()) {
@@ -154,20 +202,16 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-//        if (userIds != null && !userIds.isEmpty()) {
-//            builder.and(event.initiator.id.in(userIds));
-//        }
-
-        if (paramEventDto.getStates() != null && !paramEventDto.getStates().isEmpty()) {
-            builder.and(event.state.in(paramEventDto.getStates()));
+        if (dto.getStates() != null && !dto.getStates().isEmpty()) {
+            builder.and(event.state.in(dto.getStates()));
         }
 
-        List<Long> catIds = paramEventDto.getCatIds();
+        List<Long> catIds = dto.getCatIds();
         if (catIds != null) {
             catIds = catIds.stream()
                     .filter(id -> id != null && id > 0) // убираем null и 0
                     .toList();
-            if (catIds.isEmpty() && !paramEventDto.getCatIds().isEmpty()) {
+            if (catIds.isEmpty() && !dto.getCatIds().isEmpty()) {
                 return Collections.emptyList();
             }
             if (!catIds.isEmpty()) {
@@ -175,19 +219,16 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-//        if (catIds != null && !catIds.isEmpty()) {
-//            builder.and(event.category.id.in(catIds));
-//        }
         return jpaQueryFactory
                 .selectFrom(event)
                 .where(builder)
-                .offset(paramEventDto.getFrom())
-                .limit(paramEventDto.getSize())
+                .offset(dto.getFrom())
+                .limit(dto.getSize())
                 .fetch();
     }
 
     @Override
-    public Event findById(long eventId) {
+    public EventFullDto findById(long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не нпйдено"));
 
@@ -195,7 +236,14 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие не нпйдено");
         }
 
-        return event;
+        return eventMapper.toFullResponse(event);
+    }
+
+    @Override
+    public EventFullDto findByEventAndInitiator(long eventId, long userId) {
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new NotFoundException("Событие на надено"));
+        return eventMapper.toFullResponse(event);
     }
 
     private void merge(Event existingEvent, Event updatedEvent) {

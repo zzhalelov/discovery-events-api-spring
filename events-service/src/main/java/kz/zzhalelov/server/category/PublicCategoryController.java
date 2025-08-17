@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,6 +34,5 @@ public class PublicCategoryController {
                 .stream()
                 .map(categoryMapper::toResponse)
                 .toList();
-
     }
 }

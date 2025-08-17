@@ -1,6 +1,5 @@
 package kz.zzhalelov.server.event.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import kz.zzhalelov.server.event.eventEnum.EventState;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -13,11 +12,11 @@ import java.util.List;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ParamEventDto {
+public class ParamAdminEventDto {
     List<Long> userIds = new ArrayList<>();
     List<EventState> states = new ArrayList<>();
     List<Long> catIds = new ArrayList<>();
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime rangeStart;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime rangeEnd;

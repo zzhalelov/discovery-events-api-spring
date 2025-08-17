@@ -6,12 +6,11 @@ import kz.zzhalelov.server.event.eventEnum.EventState;
 import kz.zzhalelov.server.exception.ConflictException;
 import kz.zzhalelov.server.exception.ForbiddenException;
 import kz.zzhalelov.server.exception.NotFoundException;
-import kz.zzhalelov.server.request.dto.RequestMapper;
-import kz.zzhalelov.server.request.dto.RequestStatusResponseDto;
-import kz.zzhalelov.server.request.dto.RequestStatusUpdateDto;
+import kz.zzhalelov.server.request.dto.*;
 import kz.zzhalelov.server.user.User;
 import kz.zzhalelov.server.user.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,15 +55,9 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("Нельзя участвовать в неопубликованном событии");
         }
 
-        long totalRequests = requestRepository.countByEvent_Id(eventId);
-
-        if (event.getParticipantLimit() > 0 && totalRequests >= event.getParticipantLimit()) {
+        if (event.getParticipantLimit() > 0 && event.getConfirmedRequests() >= event.getParticipantLimit()) {
             throw new ConflictException("Лимит участников для события достигнут");
         }
-
-//        if (event.getParticipantLimit() != 0 && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
-//            throw new ConflictException("Если у события достигнут лимит запросов на участие");
-//        }
 
         Request request = new Request();
         request.setStatus(RequestStatus.PENDING);
@@ -83,6 +76,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public RequestStatusResponseDto update(RequestStatusUpdateDto dto,
                                            long userId,
                                            long eventId) {
@@ -104,22 +98,20 @@ public class RequestServiceImpl implements RequestService {
             }
         });
 
-        long confirmedRequests = requestRepository.countByEvent_IdAndStatus(eventId, RequestStatus.CONFIRMED);
-
         List<Request> confirmed = new ArrayList<>();
         List<Request> rejected = new ArrayList<>();
 
         if (dto.getStatus() == RequestStatus.CONFIRMED) {
             for (Request request : requests) {
-                if (confirmedRequests >= event.getParticipantLimit()) {
+                if (event.getConfirmedRequests() >= event.getParticipantLimit()) {
                     throw new ConflictException("Лимит заявок для события уже достигнут");
                 }
                 request.setStatus(RequestStatus.CONFIRMED);
+                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
                 confirmed.add(request);
-                confirmedRequests++;
             }
 
-            if (confirmedRequests >= event.getParticipantLimit()) {
+            if (event.getConfirmedRequests() >= event.getParticipantLimit()) {
                 List<Request> pendingRequests = requestRepository
                         .findAllByEvent_IdAndStatus(eventId, RequestStatus.PENDING);
                 pendingRequests.forEach(pendingRequest -> pendingRequest.setStatus(RequestStatus.REJECTED));
@@ -133,11 +125,28 @@ public class RequestServiceImpl implements RequestService {
 
         requestRepository.saveAll(confirmed);
         requestRepository.saveAll(rejected);
+        eventRepository.save(event);
 
         RequestStatusResponseDto responseDto = new RequestStatusResponseDto();
         responseDto.setConfirmedRequests(requestMapper.toResponse(confirmed));
         responseDto.setRejectedRequests(requestMapper.toResponse(rejected));
 
         return responseDto;
+    }
+
+    @Override
+    public RequestResponseDto cancelRequest(Long userId, Long requestId) {
+        Request request = requestRepository.findByIdAndRequester_Id(requestId, userId)
+                .orElseThrow(() -> new NotFoundException("Запрос у пользователя не найден"));
+        request.setStatus(RequestStatus.CANCELED);
+        requestRepository.save(request);
+
+        return requestMapper.toResponse(request);
+    }
+
+    @Override
+    public List<RequestResponseDto> findUserRequests(Long userId) {
+        List<Request> requests = requestRepository.findAllByRequester_Id(userId);
+        return requestMapper.toResponse(requests);
     }
 }

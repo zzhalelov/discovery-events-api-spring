@@ -1,7 +1,8 @@
 package kz.zzhalelov.server.event;
 
-import kz.zzhalelov.server.event.dto.ParamEventDto;
-import kz.zzhalelov.server.user.User;
+import kz.zzhalelov.server.event.dto.EventFullDto;
+import kz.zzhalelov.server.event.dto.ParamAdminEventDto;
+import kz.zzhalelov.server.event.dto.ParamPublicEventDto;
 
 import java.util.List;
 
@@ -10,14 +11,15 @@ public interface EventService {
 
     List<Event> findAllByInitiator(long userId, int from, int size);
 
-    List<Event> findAll(int from, int size, List<Long> categoryIds);
+    List<Event> findAll(ParamPublicEventDto params);
 
     Event update(Event event, long userId, long eventId);
 
     Event updateByAdmin(Event event, long eventId);
 
-    List<Event> searchEvents(ParamEventDto paramEventDto);
+    List<Event> searchEvents(ParamAdminEventDto dto);
 
-    Event findById(long eventId);
+    EventFullDto findById(long eventId);
 
+    EventFullDto findByEventAndInitiator(long eventId, long userId);
 }

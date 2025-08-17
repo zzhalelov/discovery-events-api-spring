@@ -61,7 +61,7 @@ public class EventMapper {
         event.setTitle(adminEventUpdateDto.getTitle());
 
         if (adminEventUpdateDto.getStateAction() != null) {
-            if (adminEventUpdateDto.getStateAction()== AdminStateAction.PUBLISH_EVENT) {
+            if (adminEventUpdateDto.getStateAction() == AdminStateAction.PUBLISH_EVENT) {
                 event.setState(EventState.PUBLISHED);
             } else {
                 event.setState(EventState.CANCELED);
@@ -70,8 +70,8 @@ public class EventMapper {
         return event;
     }
 
-    public EventResponseDto toResponse(Event event) {
-        EventResponseDto dto = new EventResponseDto();
+    public EventFullDto toFullResponse(Event event) {
+        EventFullDto dto = new EventFullDto();
         dto.setId(event.getId());
         dto.setTitle(event.getTitle());
         dto.setAnnotation(event.getAnnotation());
@@ -119,9 +119,48 @@ public class EventMapper {
         return dto;
     }
 
+    public EventResponseDto toResponse(Event event) {
+        EventResponseDto dto = new EventResponseDto();
+
+        dto.setId(event.getId());
+        dto.setAnnotation(event.getAnnotation());
+
+        if (event.getCategory() != null) {
+            dto.setCategory(new CategoryResponseDto(
+                    event.getCategory().getId(),
+                    event.getCategory().getName()
+            ));
+        }
+
+        if (event.getEventDate() != null) {
+            dto.setEventDate(event.getEventDate());
+        }
+
+        if (event.getInitiator() != null) {
+            dto.setInitiator(new UserShortDto(
+                    event.getInitiator().getId(),
+                    event.getInitiator().getName()
+            ));
+        }
+
+        dto.setPaid(event.getPaid());
+        dto.setConfirmedRequests(event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0);
+        dto.setTitle(event.getTitle());
+        dto.setViews(event.getViews() != null ? event.getViews() : 0);
+
+        return dto;
+    }
+
     public List<EventResponseDto> toResponse(List<Event> events) {
         return events.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    public EventShortDto toShortDto(Event event) {
+        EventShortDto dto = new EventShortDto();
+        dto.setId(event.getId());
+        dto.setTitle(event.getTitle());
+        return dto;
     }
 }

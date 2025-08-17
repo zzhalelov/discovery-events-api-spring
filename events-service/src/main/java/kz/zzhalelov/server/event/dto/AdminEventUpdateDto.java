@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import kz.zzhalelov.server.event.eventEnum.AdminStateAction;
-import kz.zzhalelov.server.event.eventEnum.PublicStateAction;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;

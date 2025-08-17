@@ -3,7 +3,6 @@ package kz.zzhalelov.server.user;
 import kz.zzhalelov.server.exception.ConflictException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository, ContentNegotiatingViewResolver contentNegotiatingViewResolver) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

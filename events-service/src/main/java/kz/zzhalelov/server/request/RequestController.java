@@ -1,8 +1,5 @@
 package kz.zzhalelov.server.request;
 
-import kz.zzhalelov.server.event.Event;
-import kz.zzhalelov.server.event.dto.EventResponseDto;
-import kz.zzhalelov.server.event.dto.EventUpdateDto;
 import kz.zzhalelov.server.request.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,10 +16,8 @@ public class RequestController {
 
     @PostMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestResponseDto create(@RequestBody(required = false) RequestCreateDto requestCreateDto,
-                                     @PathVariable long userId,
+    public RequestResponseDto create(@PathVariable long userId,
                                      @RequestParam long eventId) {
-        Request request = requestMapper.fromCreate(requestCreateDto);
         Request createdRequest = requestService.create(userId, eventId);
         return requestMapper.toResponse(createdRequest);
     }
@@ -33,5 +28,18 @@ public class RequestController {
                                                   @PathVariable long eventId,
                                                   @RequestBody RequestStatusUpdateDto dto) {
         return requestService.update(dto, userId, eventId);
+    }
+
+    @PatchMapping("/{userId}/requests/{requestId}/cancel")
+    @ResponseStatus(HttpStatus.OK)
+    public RequestResponseDto cancelRequest(@PathVariable long userId,
+                                            @PathVariable long requestId) {
+        return requestService.cancelRequest(userId, requestId);
+    }
+
+    @GetMapping("/{userId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RequestResponseDto> findUserRequests(@PathVariable long userId) {
+        return requestService.findUserRequests(userId);
     }
 }

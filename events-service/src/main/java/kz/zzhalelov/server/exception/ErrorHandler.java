@@ -17,7 +17,7 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(BadRequestException ex) {
         return new ApiError(
-                "For the requested operation the conditions are not met.",
+                "Ошибка при формировании запроса пользователем",
                 ex.getMessage(),
                 Collections.emptyList(),
                 HttpStatus.BAD_REQUEST.name(),

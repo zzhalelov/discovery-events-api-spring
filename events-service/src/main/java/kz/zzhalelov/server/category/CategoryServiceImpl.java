@@ -44,9 +44,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(Long catId) {
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
-
         boolean hasEvents = eventRepository.existsByCategoryId(catId);
         if (hasEvents) {
             throw new ConflictException("Нельзя удалить категорию с привязанными событиями");

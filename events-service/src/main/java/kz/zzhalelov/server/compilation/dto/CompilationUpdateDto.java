@@ -1,21 +1,17 @@
 package kz.zzhalelov.server.compilation.dto;
 
-import kz.zzhalelov.server.event.Event;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Value;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
-/**
- * DTO for {@link kz.zzhalelov.server.compilation.Compilation}
- */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CompilationDto {
-    Long id;
+public class CompilationUpdateDto {
+    @Size(max = 50)
     String title;
-    List<Event> events;
     Boolean pinned;
+    List<Long> events;
 }
