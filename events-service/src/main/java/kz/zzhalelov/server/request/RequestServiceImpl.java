@@ -23,14 +23,14 @@ public class RequestServiceImpl implements RequestService {
     private final EventRepository eventRepository;
     private final RequestMapper requestMapper;
 
-
     public RequestServiceImpl(RequestRepository requestRepository,
                               UserRepository userRepository,
-                              EventRepository eventRepository) {
+                              EventRepository eventRepository,
+                              RequestMapper requestMapper) {
         this.requestRepository = requestRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
-        this.requestMapper = new RequestMapper();
+        this.requestMapper = requestMapper;
     }
 
     @Override
@@ -148,5 +148,17 @@ public class RequestServiceImpl implements RequestService {
     public List<RequestResponseDto> findUserRequests(Long userId) {
         List<Request> requests = requestRepository.findAllByRequester_Id(userId);
         return requestMapper.toResponse(requests);
+    }
+
+    @Override
+    public List<EventRequestResponseDto> findEventRequests(Long userId, Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+
+        if (event.getInitiator() == null || !event.getInitiator().getId().equals(userId)) {
+            throw new ForbiddenException("Нет доступа к заявкам этого события");
+        }
+        List<Request> requests = requestRepository.findAllByEvent_Id(eventId);
+        return requestMapper.toEventResponse(requests);
     }
 }

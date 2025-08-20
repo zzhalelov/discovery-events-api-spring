@@ -1,5 +1,6 @@
 package kz.zzhalelov.server.request;
 
+import kz.zzhalelov.server.request.dto.EventRequestResponseDto;
 import kz.zzhalelov.server.request.dto.RequestResponseDto;
 import kz.zzhalelov.server.request.dto.RequestStatusResponseDto;
 import kz.zzhalelov.server.request.dto.RequestStatusUpdateDto;
@@ -16,4 +17,6 @@ public interface RequestService {
     RequestResponseDto cancelRequest(Long userId, Long requestId);
 
     List<RequestResponseDto> findUserRequests(Long userId);
+
+    List<EventRequestResponseDto> findEventRequests(Long userId, Long eventId);
 }

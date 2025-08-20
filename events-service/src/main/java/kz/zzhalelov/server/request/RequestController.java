@@ -30,10 +30,17 @@ public class RequestController {
         return requestService.update(dto, userId, eventId);
     }
 
+    @GetMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<EventRequestResponseDto> findEventRequests(@PathVariable long userId,
+                                                           @PathVariable long eventId) {
+        return requestService.findEventRequests(userId, eventId);
+    }
+
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public RequestResponseDto cancelRequest(@PathVariable long userId,
-                                            @PathVariable long requestId) {
+                                                 @PathVariable long requestId) {
         return requestService.cancelRequest(userId, requestId);
     }
 

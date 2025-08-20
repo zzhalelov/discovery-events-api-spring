@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RequestResponseDto {
+public class EventRequestResponseDto {
     Long id;
     Long requester;
     Long event;
