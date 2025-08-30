@@ -1,0 +1,14 @@
+server:
+  port: 9090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/discovery-events-api
+    username: postgres
+    password: postgres
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
